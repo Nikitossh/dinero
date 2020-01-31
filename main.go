@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func readInput() {
@@ -26,6 +27,22 @@ func readInput() {
 	}
 	// Use collected inputs
 	fmt.Println(arr)
+}
+
+type Cost struct {
+	date     time.Time
+	category string
+	value    int
+	comment  string
+}
+
+func NewCost(date time.Time, category string, value int, comment string) *Cost {
+	return &Cost{date: date, category: category, value: value, comment: comment}
+}
+
+func (c *Cost) String() string {
+	d := c.date.Format("2006-01-02")
+	return fmt.Sprintf("%v %s %d %s", d, c.category, c.value, c.comment)
 }
 
 func check(e error) {
@@ -70,5 +87,7 @@ func isValidCost(s string) bool {
 }
 
 func main() {
-	readFile()
+	c := NewCost(time.Now(), "food", 2000, "first draft")
+	fmt.Println(c)
+	//readFile()
 }
