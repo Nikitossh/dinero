@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
+
+var validCost = regexp.MustCompile(`^(?P<date>(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))\s+(?P<category>\w+)\s+(?P<value>[0-9]{1,9})\s+(?P<comment>...{1,255}?)$`)
 
 func readInput() {
 	// To create dynamic array
@@ -45,13 +48,15 @@ func (c *Cost) String() string {
 	return fmt.Sprintf("%v %s %d %s", d, c.category, c.value, c.comment)
 }
 
+// panic with error
 func check(e error) {
 	if e != nil {
 		panic(e)
 	}
 }
 
-func readFile() {
+func readFile() []*Cost {
+	var result = make([]*Cost, 100)
 	file, err := os.Open("/tmp/costs")
 	check(err)
 	defer file.Close()
@@ -64,20 +69,31 @@ func readFile() {
 		cost := scanner.Text()
 		total++
 		if isValidCost(cost) {
-			fmt.Println(cost)
+			//fmt.Println(cost)
+			result = append(result, parseToCost(cost))
 			added++
 		} else {
 			skipped++
 		}
 	}
 	fmt.Printf("Total lines in file %d \t\t Correct: %d  \t\t Skipped: %d", total, added, skipped)
+	return result
+}
+
+func parseToCost(s string) *Cost {
+	rs := validCost.FindStringSubmatch(s)
+	date, err := time.Parse("2006-01-2", rs[1])
+	check(err)
+	category := rs[5]
+	value, _ := strconv.Atoi(rs[6])
+	comment := rs[7]
+	return NewCost(date, category, value, comment)
 }
 
 func isValidCost(s string) bool {
 	// valid cost by regex, must be smth like:
 	// YYYY-MM-DD category value comment
 	trimmed := strings.TrimSpace(s)
-	var validCost = regexp.MustCompile(`^((19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))\s+(\w+)\s+([0-9]{1,9})\s+(...{1,255}?)$`)
 
 	if validCost.MatchString(trimmed) {
 		return true
@@ -87,7 +103,9 @@ func isValidCost(s string) bool {
 }
 
 func main() {
-	c := NewCost(time.Now(), "food", 2000, "first draft")
-	fmt.Println(c)
-	//readFile()
+	costs := make([]*Cost, 50)
+	costs = readFile()
+	for _, v := range costs {
+		fmt.Println(v)
+	}
 }
