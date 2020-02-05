@@ -35,6 +35,35 @@ func check(e error) {
 	}
 }
 
+// return empty string if input is empty
+func readInput() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("Enter cost in 2000-01-31 category 995 comment not more than 255 vars")
+		scanner.Scan()
+		// Holds the string that scanned
+		text := scanner.Text()
+		if len(text) != 0 {
+			return text
+		} else {
+			break
+		}
+	}
+	return ""
+}
+
+func CostFromString(s string) *Cost {
+	if isValidCost(s) {
+		return ToCost(s)
+	}
+	return nil
+}
+
+func CostFromTerminal() *Cost {
+	s := readInput()
+	return CostFromString(s)
+}
+
 func CostsFromFile(filename string) []*Cost {
 	var result = make([]*Cost, 0)
 	skipped, added, total := 0, 0, 0
@@ -60,7 +89,7 @@ func CostsFromFile(filename string) []*Cost {
 
 func ToCost(s string) *Cost {
 	rs := validCost.FindStringSubmatch(s)
-	date, err := time.Parse("2006-01-2", rs[1])
+	date, err := time.Parse("2006-01-02", rs[1])
 	check(err)
 	category := rs[5]
 	value, _ := strconv.Atoi(rs[6])
@@ -81,9 +110,11 @@ func isValidCost(s string) bool {
 }
 
 func main() {
-	costs := make([]*Cost, 0)
-	costs = CostsFromFile("/tmp/costs")
-	for _, v := range costs {
-		fmt.Println(v)
-	}
+	//costs := make([]*Cost, 0)
+	//costs = CostsFromFile("/tmp/costs")
+	//for _, v := range costs {
+	//	fmt.Println(v)
+	//}
+	c := CostFromTerminal()
+	fmt.Println(c)
 }
