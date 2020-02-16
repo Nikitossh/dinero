@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"os"
 	"testing"
 )
@@ -21,6 +23,15 @@ var correctMessages = []string{
 	"2020-02-25 communication 999 2line",
 	"2020-01-15 food 999 shop or smth else",
 	"2020-07-02 food 200 testCase",
+}
+
+func Test_databasePostgres(t *testing.T) {
+	db, err := gorm.Open("postgres", "host=localhost port=5432 user=dinero dbname=dinero password=TodayIsTheBestDay sslmode=disable")
+	if err != nil {
+		fmt.Println(err)
+		t.Errorf("Error with connection to database")
+	}
+	defer db.Close()
 }
 
 func Test_isValidCost(t *testing.T) {

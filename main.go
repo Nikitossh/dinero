@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"os"
 	"regexp"
 	"strconv"
@@ -13,6 +15,7 @@ import (
 var validCost = regexp.MustCompile(`^(?P<date>(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))\s+(?P<category>\w+)\s+(?P<value>[0-9]{1,9})\s+(?P<comment>...{1,255}?)$`)
 
 type Cost struct {
+	gorm.Model
 	date     time.Time
 	category string
 	value    int
@@ -109,12 +112,28 @@ func isValidCost(s string) bool {
 	}
 }
 
+func database() {
+
+}
+
 func main() {
-	//costs := make([]*Cost, 0)
-	//costs = CostsFromFile("/tmp/costs")
-	//for _, v := range costs {
-	//	fmt.Println(v)
-	//}
-	c := CostFromTerminal()
-	fmt.Println(c)
+	costs := make([]*Cost, 0)
+	costs = CostsFromFile("/tmp/costs")
+
+	db, err := gorm.Open("postgres", "host=localhost port=5432 user=dinero dbname=dinero password=TodayIsTheBestDay sslmode=disable")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer db.Close()
+
+	db.AutoMigrate(&Cost{})
+
+	for _, v := range costs {
+		fmt.Println(v)
+		db.Create(v)
+	}
+
+	// Create cost by hand
+	//c := CostFromTerminal()
+	//fmt.Println(c)
 }
