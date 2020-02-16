@@ -12,23 +12,24 @@ import (
 	"time"
 )
 
-var validCost = regexp.MustCompile(`^(?P<date>(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))\s+(?P<category>\w+)\s+(?P<value>[0-9]{1,9})\s+(?P<comment>...{1,255}?)$`)
+var validCost = regexp.MustCompile(`^(?P<Date>(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))\s+(?P<Category>\w+)\s+(?P<Value>[0-9]{1,9})\s+(?P<Comment>...{1,255}?)$`)
 
+// Important note: field names must be capital
 type Cost struct {
 	gorm.Model
-	date     time.Time
-	category string
-	value    int
-	comment  string
+	Date     time.Time
+	Category string
+	Value    int
+	Comment  string
 }
 
 func NewCost(date time.Time, category string, value int, comment string) *Cost {
-	return &Cost{date: date, category: category, value: value, comment: comment}
+	return &Cost{Date: date, Category: category, Value: value, Comment: comment}
 }
 
 func (c *Cost) String() string {
-	d := c.date.Format("2006-01-02")
-	return fmt.Sprintf("%v %s %d %s", d, c.category, c.value, c.comment)
+	d := c.Date.Format("2006-01-02")
+	return fmt.Sprintf("%v %s %d %s", d, c.Category, c.Value, c.Comment)
 }
 
 // panic with error
@@ -42,7 +43,7 @@ func check(e error) {
 func readInput() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
-		fmt.Print("Enter cost in 2000-01-31 category 995 comment not more than 255 vars")
+		fmt.Print("Enter cost in 2000-01-31 Category 995 Comment not more than 255 vars")
 		scanner.Scan()
 		// Holds the string that scanned
 		text := scanner.Text()
@@ -71,7 +72,9 @@ func CostsFromFile(filename string) []*Cost {
 	var result = make([]*Cost, 0)
 	skipped, added, total := 0, 0, 0
 	file, err := os.Open(filename)
-	check(err)
+	if err != nil {
+		fmt.Println("Error with opening file. Does this file exists and have the correct permissions?")
+	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -102,7 +105,7 @@ func ToCost(s string) *Cost {
 
 func isValidCost(s string) bool {
 	// valid cost by regex, must be smth like:
-	// YYYY-MM-DD category value comment
+	// YYYY-MM-DD Category Value Comment
 	trimmed := strings.TrimSpace(s)
 
 	if validCost.MatchString(trimmed) {
@@ -112,28 +115,37 @@ func isValidCost(s string) bool {
 	}
 }
 
-func database() {
+func SaveCostsToDB(db *gorm.DB, file string) {
+	// Create slice of Costs from file
+	costs := make([]*Cost, 0)
+	costs = CostsFromFile(file)
+	for _, v := range costs {
+		fmt.Println(v)
+		// Write costs to database
+		db.Create(v)
+	}
+}
 
+func SaveCostToDB(db *gorm.DB, c *Cost) {
+	db.Create(c)
 }
 
 func main() {
-	costs := make([]*Cost, 0)
-	costs = CostsFromFile("/tmp/costs")
-
+	// connect to database
 	db, err := gorm.Open("postgres", "host=localhost port=5432 user=dinero dbname=dinero password=TodayIsTheBestDay sslmode=disable")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer db.Close()
-
+	// create table schema from struct if not created
 	db.AutoMigrate(&Cost{})
 
-	for _, v := range costs {
-		fmt.Println(v)
-		db.Create(v)
-	}
+	//// Save from file to database
+	//file := "/tmp/costss"
+	//SaveCostsToDB(db, file)
 
 	// Create cost by hand
-	//c := CostFromTerminal()
+	c := CostFromTerminal()
+	SaveCostToDB(db, c)
 	//fmt.Println(c)
 }
