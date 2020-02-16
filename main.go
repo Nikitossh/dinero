@@ -39,11 +39,12 @@ func check(e error) {
 	}
 }
 
-// return empty string if input is empty
+// return empty string if user Input is empty
 func readInput() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
-		fmt.Print("Enter cost in 2000-01-31 Category 995 Comment not more than 255 vars")
+		fmt.Println("Enter cost like `2000-01-31 Category 995 Comment not more than 255 vars`")
+		fmt.Println()
 		scanner.Scan()
 		// Holds the string that scanned
 		text := scanner.Text()
@@ -141,11 +142,10 @@ func main() {
 	db.AutoMigrate(&Cost{})
 
 	//// Save from file to database
-	//file := "/tmp/costss"
+	//file := "/tmp/costs"
 	//SaveCostsToDB(db, file)
 
-	// Create cost by hand
-	c := CostFromTerminal()
-	SaveCostToDB(db, c)
-	//fmt.Println(c)
+	//// Create cost by hand
+	//c := CostFromTerminal()
+	//SaveCostToDB(db, c)
 }
