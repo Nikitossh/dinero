@@ -138,6 +138,12 @@ func GetAllCosts(db *gorm.DB) []*Cost {
 	return c
 }
 
+func GetCategories(db *gorm.DB) []string {
+	var categories []string
+	db.Table("costs").Pluck("distinct(category)", &categories)
+	return categories
+}
+
 func main() {
 	// connect to database
 	db, err := gorm.Open("postgres", "host=localhost port=5432 user=dinero dbname=dinero password=TodayIsTheBestDay sslmode=disable")
@@ -154,6 +160,11 @@ func main() {
 		if cb.Category == "car" {
 			fmt.Println(cb)
 		}
+	}
+
+	categories := GetCategories(db)
+	for _, cat := range categories {
+		fmt.Println(cat)
 	}
 
 	//// Save from file to database
