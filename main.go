@@ -13,6 +13,7 @@ import (
 )
 
 var validCost = regexp.MustCompile(`^(?P<Date>(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))\s+(?P<Category>\w+)\s+(?P<Value>[0-9]{1,9})\s+(?P<Comment>...{1,255}?)$`)
+var db *gorm.DB
 
 // Important note: field names must be capital
 type Cost struct {
@@ -116,7 +117,7 @@ func isValidCost(s string) bool {
 	}
 }
 
-func SaveCostsToDB(db *gorm.DB, file string) {
+func SaveCostsToDB(file string) {
 	// Create slice of Costs from file
 	costs := make([]*Cost, 0)
 	costs = CostsFromFile(file)
@@ -127,8 +128,14 @@ func SaveCostsToDB(db *gorm.DB, file string) {
 	}
 }
 
-func SaveCostToDB(db *gorm.DB, c *Cost) {
+func SaveCostToDB(c *Cost) {
 	db.Create(c)
+}
+
+func GetAllCosts(db *gorm.DB) []*Cost {
+	var c []*Cost
+	db.Find(&c)
+	return c
 }
 
 func main() {
@@ -141,11 +148,19 @@ func main() {
 	// create table schema from struct if not created
 	db.AutoMigrate(&Cost{})
 
+	var c []*Cost
+	c = GetAllCosts(db)
+	for _, cb := range c {
+		if cb.Category == "car" {
+			fmt.Println(cb)
+		}
+	}
+
 	//// Save from file to database
 	//file := "/tmp/costs"
-	//SaveCostsToDB(db, file)
+	//SaveCostsToDB(file)
 
 	//// Create cost by hand
 	//c := CostFromTerminal()
-	//SaveCostToDB(db, c)
+	//SaveCostToDB(c)
 }
