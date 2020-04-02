@@ -24,23 +24,23 @@ type Cost struct {
 	Comment  string
 }
 
-func NewCost(date time.Time, category string, value int, comment string) *Cost {
-	return &Cost{Date: date, Category: category, Value: value, Comment: comment}
+func NewCost(date time.Time, category string, value int, comment string) Cost {
+	return Cost{Date: date, Category: category, Value: value, Comment: comment}
 }
 
-func (c *Cost) String() string {
-	d := c.Date.Format("2006-01-02")
-	return fmt.Sprintf("%v %s %d %s", d, c.Category, c.Value, c.Comment)
+func (c Cost) String() string {
+	formattedDate := c.Date.Format("2006-01-02")
+	return fmt.Sprintf("%s %s %d %s", formattedDate, c.Category, c.Value, c.Comment)
 }
 
-// panic with error
+// todo: Do not panic with eny error. Only print it to log
 func check(e error) {
 	if e != nil {
 		panic(e)
 	}
 }
 
-// return empty string if user Input is empty
+// return empty string if user's Input is empty
 func readInput() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
@@ -58,20 +58,22 @@ func readInput() string {
 	return ""
 }
 
-func CostFromString(s string) *Cost {
+func CostFromString(s string) Cost {
 	if isValidCost(s) {
-		return ToCost(s)
-	}
-	return nil
+		return StringToCost(s)
+	} else { 
+		// todo: FIX IT!!! RETURN ERROR AND WORK WITH IT! 
+	        return StringToCost(s)
+        }
 }
 
-func CostFromTerminal() *Cost {
+func CostFromTerminal() Cost {
 	s := readInput()
 	return CostFromString(s)
 }
 
-func CostsFromFile(filename string) []*Cost {
-	var result = make([]*Cost, 0)
+func CostsFromFile(filename string) []Cost {
+	var result = make([]Cost, 0)
 	skipped, added, total := 0, 0, 0
 	file, err := os.Open(filename)
 	if err != nil {
@@ -84,8 +86,7 @@ func CostsFromFile(filename string) []*Cost {
 		cost := scanner.Text()
 		total++
 		if isValidCost(cost) {
-			//fmt.Println(cost)
-			result = append(result, ToCost(cost))
+			result = append(result, StringToCost(cost))
 			added++
 		} else {
 			skipped++
@@ -95,10 +96,9 @@ func CostsFromFile(filename string) []*Cost {
 	return result
 }
 
-func ToCost(s string) *Cost {
+func StringToCost(s string) Cost {
 	rs := validCost.FindStringSubmatch(s)
-	date, err := time.Parse("2006-01-02", rs[1])
-	check(err)
+	date, _ := time.Parse("2006-01-02", rs[1])
 	category := rs[5]
 	value, _ := strconv.Atoi(rs[6])
 	comment := rs[7]
@@ -118,13 +118,11 @@ func isValidCost(s string) bool {
 }
 
 func SaveCostsToDB(file string) {
-	// Create slice of Costs from file
-	costs := make([]*Cost, 0)
-	costs = CostsFromFile(file)
+	var costs = CostsFromFile(file)
 	for _, v := range costs {
 		fmt.Println(v)
 		// Write costs to database
-		db.Create(v)
+		db.Create(&v)
 	}
 }
 

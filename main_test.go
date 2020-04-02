@@ -50,7 +50,7 @@ func Test_isValidCost(t *testing.T) {
 
 func Test_CostsFromFile(t *testing.T) {
 	filename := "costs_test"
-	costs := make([]*Cost, 0)
+	costs := make([]Cost, 0)
 
 	// create file if it is not exists
 	var _, err = os.Stat(filename)
