@@ -16,8 +16,7 @@ CONTAINER_NAME="pg_dinero"
 if [[ ! -f $POSTGRES_CONFIG ]]; then
   echo "Trying to get default configuration for postgres"
   docker run -i --rm postgres cat /usr/share/postgresql/postgresql.conf.sample > $POSTGRES_CONFIG
-# You can customize config by hand. Below line MUST be set for usage by other containers
-# listen_address = '*'
+# You can customize config by hand. Below line MUST be set for usage by other containers: listen_address = '*'
 fi
 
 sleep 1
@@ -34,3 +33,6 @@ docker run -d \
   -e POSTGRES_DB=$POSTGRES_DB \
   -p $PORT:5432 \
   postgres 
+
+# Fix SElinux issue
+chcon -Rt svirt_sandbox_file_t /var/lib/postgresql/data/

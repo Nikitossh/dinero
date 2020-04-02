@@ -167,9 +167,9 @@ func main() {
 		fmt.Println(cat)
 	}
 
-	//// Save from file to database
-	//file := "/tmp/costs"
-	//SaveCostsToDB(file)
+/// Save from file to database
+	file := "months/march"
+	SaveCostsToDB(file)
 
 	//// Create cost by hand
 	//c := CostFromTerminal()
